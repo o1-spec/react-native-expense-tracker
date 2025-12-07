@@ -38,7 +38,7 @@ export default function MonthlyChart({ expenses }: MonthlyChartProps) {
   }));
 
   if (chartData.length === 0) {
-    return <Text>No data for this month.</Text>;
+    return <Text style={{ textAlign: 'center', padding: 5 }}>No data for this month.</Text>;
   }
 
   return (

@@ -1,7 +1,7 @@
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 import React, { useState } from 'react';
 import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker'; // Add this import
-import { Picker } from '@react-native-picker/picker';
 import { Category, Expense } from '../types';
 
 const categories: Category[] = ['Food', 'Transport', 'Bills', 'Shopping', 'Subscriptions', 'Others'];
@@ -17,9 +17,9 @@ export default function ExpenseForm({ initialExpense, onSave, onDelete, onCancel
   const [title, setTitle] = useState(initialExpense?.title || '');
   const [amount, setAmount] = useState(initialExpense?.amount.toString() || '');
   const [category, setCategory] = useState<Category>(initialExpense?.category || 'Food');
-  const [date, setDate] = useState(new Date(initialExpense?.date || new Date())); // Use Date object
+  const [date, setDate] = useState(new Date(initialExpense?.date || new Date())); 
   const [notes, setNotes] = useState(initialExpense?.notes || '');
-  const [showDatePicker, setShowDatePicker] = useState(false); // Add state for picker visibility
+  const [showDatePicker, setShowDatePicker] = useState(false); 
 
   const handleSave = () => {
     if (!title || !amount) {
@@ -30,7 +30,7 @@ export default function ExpenseForm({ initialExpense, onSave, onDelete, onCancel
       title,
       amount: parseFloat(amount),
       category,
-      date: date.toISOString().split('T')[0], // Convert to YYYY-MM-DD
+      date: date.toISOString().split('T')[0], 
       notes,
     });
   };
@@ -45,7 +45,7 @@ export default function ExpenseForm({ initialExpense, onSave, onDelete, onCancel
   };
 
   const onDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios'); // Hide on Android after selection
+    setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
       setDate(selectedDate);
     }
@@ -54,32 +54,36 @@ export default function ExpenseForm({ initialExpense, onSave, onDelete, onCancel
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{initialExpense ? 'Edit Expense' : 'Add Expense'}</Text>
-      <TextInput style={styles.input} placeholder="Title" value={title} onChangeText={setTitle} />
-      <TextInput style={styles.input} placeholder="Amount" value={amount} onChangeText={setAmount} keyboardType="numeric" />
-      <View style={styles.pickerContainer}>
-        <Text style={styles.label}>Category</Text>
-        <Picker
-          selectedValue={category}
-          onValueChange={(itemValue) => setCategory(itemValue)}
-          style={styles.picker}
-        >
-          {categories.map((cat) => (
-            <Picker.Item key={cat} label={cat} value={cat} />
-          ))}
-        </Picker>
+      <View style={styles.card}>
+        <TextInput style={styles.input} placeholder="Title" value={title} onChangeText={setTitle} />
+        <TextInput style={styles.input} placeholder="Amount" value={amount} onChangeText={setAmount} keyboardType="numeric" />
+        <View style={styles.pickerContainer}>
+          <Text style={styles.label}>Category</Text>
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={category}
+              onValueChange={(itemValue) => setCategory(itemValue)}
+              style={styles.picker}
+            >
+              {categories.map((cat) => (
+                <Picker.Item key={cat} label={cat} value={cat} />
+              ))}
+            </Picker>
+          </View>
+        </View>
+        <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+          <Text style={styles.dateText}>Date: {date.toLocaleDateString()}</Text>
+        </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display="default"
+            onChange={onDateChange}
+          />
+        )}
+        <TextInput style={styles.input} placeholder="Notes" value={notes} onChangeText={setNotes} multiline />
       </View>
-      <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
-        <Text style={styles.dateText}>Date: {date.toLocaleDateString()}</Text>
-      </TouchableOpacity>
-      {showDatePicker && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display="default"
-          onChange={onDateChange}
-        />
-      )}
-      <TextInput style={styles.input} placeholder="Notes" value={notes} onChangeText={setNotes} multiline />
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.buttonText}>Save</Text>
       </TouchableOpacity>
@@ -96,16 +100,18 @@ export default function ExpenseForm({ initialExpense, onSave, onDelete, onCancel
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: 'center' },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: '#ccc', padding: 10, marginBottom: 10, borderRadius: 5 },
-  pickerContainer: { marginBottom: 10 },
-  label: { fontSize: 16, marginBottom: 5 },
-  picker: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5 },
-  dateButton: { borderWidth: 1, borderColor: '#ccc', padding: 10, marginBottom: 10, borderRadius: 5, backgroundColor: '#f9f9f9' },
-  dateText: { fontSize: 16 },
-  saveButton: { backgroundColor: '#007AFF', padding: 15, borderRadius: 5, alignItems: 'center', marginBottom: 10 },
-  deleteButton: { backgroundColor: '#FF3B30', padding: 15, borderRadius: 5, alignItems: 'center', marginBottom: 10 },
-  cancelButton: { backgroundColor: '#8E8E93', padding: 15, borderRadius: 5, alignItems: 'center' },
-  buttonText: { color: 'white', fontSize: 16 },
+  container: { flex: 1, justifyContent: 'center' },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#333', textAlign: 'center', marginBottom: 20 },
+  card: { backgroundColor: '#fff', borderRadius: 10, padding: 20, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
+  input: { backgroundColor: '#f9f9f9', borderWidth: 1, borderColor: '#ddd', padding: 12, marginBottom: 15, borderRadius: 8, fontSize: 16 },
+  pickerContainer: { marginBottom: 15 },
+  label: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 5 },
+  pickerWrapper: { backgroundColor: '#f9f9f9', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, marginBottom: 15, overflow: 'hidden' }, // Add overflow hidden to prevent clipping
+  picker: { height: 50 },
+  dateButton: { backgroundColor: '#f9f9f9', borderWidth: 1, borderColor: '#ddd', padding: 12, marginBottom: 15, borderRadius: 8 },
+  dateText: { fontSize: 16, color: '#333' },
+  saveButton: { backgroundColor: '#007AFF', padding: 15, borderRadius: 25, alignItems: 'center', marginBottom: 10, shadowColor: '#007AFF', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 5 },
+  deleteButton: { backgroundColor: '#FF3B30', padding: 15, borderRadius: 25, alignItems: 'center', marginBottom: 10, shadowColor: '#FF3B30', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 5 },
+  cancelButton: { backgroundColor: '#8E8E93', padding: 15, borderRadius: 25, alignItems: 'center', shadowColor: '#8E8E93', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 5 },
+  buttonText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
 });

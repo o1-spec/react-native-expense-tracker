@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { SafeAreaView, StyleSheet, View } from 'react-native'; // Add SafeAreaView
 import ExpenseForm from '../components/ExpenseForm';
 import { useExpenses } from '../hooks/useExpenses';
 import { Expense } from '../types';
@@ -42,17 +42,20 @@ export default function ExpenseModal() {
   };
 
   return (
-    <View style={styles.container}>
-      <ExpenseForm
-        initialExpense={initialExpense}
-        onSave={handleSave}
-        onDelete={initialExpense ? handleDelete : undefined}
-        onCancel={handleCancel}
-      />
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <ExpenseForm
+          initialExpense={initialExpense}
+          onSave={handleSave}
+          onDelete={initialExpense ? handleDelete : undefined}
+          onCancel={handleCancel}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  safeArea: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, paddingHorizontal: 20 },
 });

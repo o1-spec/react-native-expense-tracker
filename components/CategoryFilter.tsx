@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'; // Change to View for flex row
 import { Category } from '../types';
 
 interface CategoryFilterProps {
@@ -11,7 +11,7 @@ const categories: (Category | 'All')[] = ['All', 'Food', 'Transport', 'Bills', '
 
 export default function CategoryFilter({ selectedCategory, onSelectCategory }: CategoryFilterProps) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.container}>
+    <View style={styles.container}>
       {categories.map((category) => (
         <TouchableOpacity
           key={category}
@@ -21,14 +21,14 @@ export default function CategoryFilter({ selectedCategory, onSelectCategory }: C
           <Text style={[styles.text, selectedCategory === category && styles.selectedText]}>{category}</Text>
         </TouchableOpacity>
       ))}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { marginBottom: 10 },
-  button: { padding: 10, marginRight: 10, borderRadius: 5, backgroundColor: '#f0f0f0' },
-  selectedButton: { backgroundColor: '#007AFF' },
-  text: { fontSize: 14, color: '#333' },
-  selectedText: { color: 'white' },
+  container: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginBottom: 20 }, // Flex row with wrap
+  button: { paddingVertical: 10, paddingHorizontal: 15, margin: 5, borderRadius: 20, backgroundColor: '#f0f0f0', borderWidth: 1, borderColor: '#ddd' },
+  selectedButton: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
+  text: { fontSize: 14, color: '#333', fontWeight: '500' },
+  selectedText: { color: 'white', fontWeight: 'bold' },
 });

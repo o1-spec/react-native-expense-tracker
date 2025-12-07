@@ -1,13 +1,14 @@
-import CategoryFilter from '@/components/CategoryFilter';
-import ExpenseItem from '@/components/ExpenseItem';
-import { useExpenses } from '@/hooks/useExpenses';
-import { Category } from '@/types';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import CategoryFilter from '../../components/CategoryFilter';
+import ExpenseItem from '../../components/ExpenseItem';
+import MonthlyChart from '../../components/MonthlyChart';
+import { useExpenses } from '../../hooks/useExpenses';
+import { Category } from '../../types';
 
 export default function RecentExpenses() {
-  const { recentExpenses, loading, monthlyTotal } = useExpenses();
+  const { recentExpenses, loading, monthlyTotal, expenses } = useExpenses(); // Add expenses
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
   const router = useRouter();
 
@@ -27,9 +28,10 @@ export default function RecentExpenses() {
     <View style={styles.container}>
       <Text style={styles.title}>Recent Expenses (Last 7 Days)</Text>
       <Text style={styles.total}>Monthly Total: ${monthlyTotal.toFixed(2)}</Text>
-      <CategoryFilter selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} /> {/* Add this */}
+      <MonthlyChart expenses={expenses} /> {/* Add this */}
+      <CategoryFilter selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
       <FlatList
-        data={filteredExpenses} // Use filtered data
+        data={filteredExpenses}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <ExpenseItem expense={item} />}
         ListEmptyComponent={<Text>No recent expenses in this category.</Text>}

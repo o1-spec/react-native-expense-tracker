@@ -1,47 +1,38 @@
-# 📊 Expense Tracker App  
-A simple and clean **React Native + Expo** mobile application for tracking daily spending, reviewing expenses, and visualizing monthly totals.  
-Built with **Expo Router**, **NativeWind (Tailwind CSS)**, and **AsyncStorage** for offline data persistence.
+# Expense Tracker
 
----
+A React Native app built with Expo Router for tracking personal expenses. Features local storage, category filters, search, and charts.
 
-## 🚀 Features (Version 1)
+## Features
+- **Recent Expenses**: View expenses from the last 7 days.
+- **All Expenses**: Browse all expenses with search and filters.
+- **Add/Edit Expenses**: Modal form with category selection and date picker.
+- **Local Storage**: Uses AsyncStorage for offline persistence.
+- **Category Filters**: Filter by Food, Transport, Bills, Shopping, Subscriptions, Others.
+- **Monthly Totals & Charts**: Pie chart for category breakdown.
+- **Search**: Find expenses by title or notes.
 
-### ✅ 1. Recent Expenses Screen  
-View all expenses from the **last 7 days**, displayed in a clean and organized UI.
+## Setup
+1. Install dependencies: `npm install`
+2. Start the app: `npx expo start`
+3. Run on device/simulator.
 
-### ✅ 2. All Expenses Screen  
-Complete list of all recorded expenses, sorted by newest to oldest.
+## Project Structure
+- `app/`: Screens and layouts (Expo Router).
+- `components/`: Reusable UI components.
+- `hooks/`: Custom hooks (e.g., useExpenses).
+- `utils/`: Storage helpers.
+- `types/`: TypeScript interfaces.
+- `constants/`: App constants (e.g., categories).
 
-### ✅ 3. Add / Edit Expense Modal  
-Create and update expenses with the following fields:
-- Title  
-- Amount  
-- Category  
-- Date  
-- Notes (optional)  
+## Technologies
+- React Native
+- Expo Router
+- AsyncStorage
+- react-native-chart-kit
+- TypeScript
 
-Includes a **delete option** when editing an existing expense.
-
-### ✅ 4. Local Storage (AsyncStorage)  
-All expenses are saved locally on the device.  
-Your data remains even after closing or restarting the app.
-
-### ✅ 5. Category Filters  
-Filter expenses by category:  
-Food • Transport • Bills • Shopping • Subscriptions • Others
-
-### ✅ 6. Monthly Summary + Chart  
-Displays total spending for the current month along with a simple chart visualization.
-
----
-
-## 🛠️ Tech Stack
-
-- **React Native**
-- **Expo**
-- **Expo Router**
-- **NativeWind (Tailwind CSS for RN)**
-- **AsyncStorage (for local offline storage)**
-- **React Native SVG / Victory Native (for charts)**
-
-
+## Future Enhancements
+- SQLite for advanced storage.
+- Export data to CSV.
+- Dark mode toggle.
+- Push notifications for reminders.

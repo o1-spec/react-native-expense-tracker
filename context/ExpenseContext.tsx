@@ -1,8 +1,21 @@
-import { useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Expense } from '../types';
 import { addExpense as addToStorage, deleteExpense as deleteFromStorage, loadExpenses, updateExpense as updateInStorage } from '../utils/storage';
 
-export const useExpenses = () => {
+interface ExpenseContextType {
+  expenses: Expense[];
+  loading: boolean;
+  addExpense: (expense: Omit<Expense, 'id'>) => Promise<void>;
+  updateExpense: (updatedExpense: Expense) => Promise<void>;
+  deleteExpense: (id: string) => Promise<void>;
+  recentExpenses: Expense[];
+  allExpenses: Expense[];
+  monthlyTotal: number;
+}
+
+const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined);
+
+export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -49,14 +62,26 @@ export const useExpenses = () => {
     })
     .reduce((sum, e) => sum + e.amount, 0);
 
-  return {
-    expenses,
-    recentExpenses,
-    allExpenses,
-    monthlyTotal,
-    loading,
-    addExpense,
-    updateExpense,
-    deleteExpense,
-  };
+  return (
+    <ExpenseContext.Provider value={{
+      expenses,
+      loading,
+      addExpense,
+      updateExpense,
+      deleteExpense,
+      recentExpenses,
+      allExpenses,
+      monthlyTotal,
+    }}>
+      {children}
+    </ExpenseContext.Provider>
+  );
+};
+
+export const useExpenses = () => {
+  const context = useContext(ExpenseContext);
+  if (!context) {
+    throw new Error('useExpenses must be used within ExpenseProvider');
+  }
+  return context;
 };

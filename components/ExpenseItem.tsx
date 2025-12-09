@@ -31,8 +31,8 @@ export default function ExpenseItem({ expense, onDelete }: ExpenseItemProps) {
       <View style={styles.content}>
         <Text style={styles.title}>{expense.title}</Text>
         <Text style={styles.amount}>
-          ${(expense.amount || 0).toFixed(2)}
-        </Text>{" "}
+          ₦{(expense.amount || 0).toFixed(2)}
+        </Text>
         {/* Add fallback */}
         <Text style={styles.category}>{expense.category}</Text>
         <Text style={styles.date}>

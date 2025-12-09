@@ -1,7 +1,6 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
-// Remove Picker import since we're replacing it
 import React, { useState } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'; // Add ScrollView
+import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Category, Expense } from '../types';
 
 const categories: Category[] = ['Food', 'Transport', 'Bills', 'Shopping', 'Subscriptions', 'Others'];

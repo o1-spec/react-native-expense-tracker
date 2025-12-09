@@ -1,3 +1,4 @@
+import { useExpenses } from '@/context/ExpenseContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -5,7 +6,6 @@ import { FlatList, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity,
 import CategoryFilter from '../../components/CategoryFilter';
 import ExpenseItem from '../../components/ExpenseItem';
 import MonthlyChart from '../../components/MonthlyChart';
-import { useExpenses } from '../../hooks/useExpenses';
 import { Category } from '../../types';
 
 export default function RecentExpenses() {
@@ -69,6 +69,7 @@ export default function RecentExpenses() {
         <View style={styles.expensesSection}>
           <Text style={styles.sectionTitle}>Transactions</Text>
           <FlatList
+          key={filteredExpenses.length}
             data={filteredExpenses}
             keyExtractor={(item) => item.id}
       renderItem={({ item }) => <ExpenseItem expense={item} onDelete={deleteExpense} />} // Add onDelete prop

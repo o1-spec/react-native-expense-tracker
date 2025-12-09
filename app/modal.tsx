@@ -1,8 +1,8 @@
+import { useExpenses } from '@/context/ExpenseContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native'; // Add SafeAreaView
+import { SafeAreaView, StyleSheet, View } from 'react-native';
 import ExpenseForm from '../components/ExpenseForm';
-import { useExpenses } from '../hooks/useExpenses';
 import { Expense } from '../types';
 
 export default function ExpenseModal() {

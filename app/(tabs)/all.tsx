@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { FlatList, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'; // Add SafeAreaView
+import { FlatList, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'; // Add ScrollView
 import CategoryFilter from '../../components/CategoryFilter';
 import ExpenseItem from '../../components/ExpenseItem';
 import MonthlyChart from '../../components/MonthlyChart';
@@ -32,12 +32,10 @@ export default function AllExpenses() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>  {/* Add ScrollView */}
         <Text style={styles.title}>All Expenses</Text>
-        <View style={styles.card}>
-          <Text style={styles.total}>Monthly Total: ${monthlyTotal.toFixed(2)}</Text>
-          <MonthlyChart expenses={expenses} />
-        </View>
+        <Text style={styles.total}>Monthly Total: ${monthlyTotal.toFixed(2)}</Text>  {/* Move out of card for flow */}
+        <MonthlyChart expenses={expenses} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search by title or notes..."
@@ -50,24 +48,24 @@ export default function AllExpenses() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <ExpenseItem expense={item} />}
           ListEmptyComponent={<Text style={styles.emptyText}>No expenses match your search.</Text>}
+          scrollEnabled={false}  // Disable FlatList scrolling
           contentContainerStyle={styles.listContainer}
         />
         <TouchableOpacity style={styles.addButton} onPress={() => router.push('/modal')}>
           <Text style={styles.addButtonText}>+ Add Expense</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f5f5f5' }, 
-  container: { flex: 1, paddingHorizontal: 20 },
+  safeArea: { flex: 1, backgroundColor: '#f5f5f5' },
+  scrollContainer: { flexGrow: 1, paddingHorizontal: 20, paddingBottom: 20 },  // Scrollable container
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { fontSize: 18, color: '#666' },
   title: { fontSize: 28, fontWeight: 'bold', color: '#333', textAlign: 'center', marginVertical: 20 },
-  card: { backgroundColor: '#fff', borderRadius: 10, padding: 15, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
-  total: { fontSize: 20, fontWeight: 'bold', color: '#007AFF', marginBottom: 10, textAlign: 'center' },
+  total: { fontSize: 20, fontWeight: 'bold', color: '#007AFF', textAlign: 'center', marginBottom: 15 },  // Inline with flow
   searchInput: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', padding: 12, borderRadius: 8, fontSize: 16, marginBottom: 15 },
   listContainer: { paddingBottom: 20 },
   emptyText: { textAlign: 'center', fontSize: 16, color: '#666', marginTop: 20 },

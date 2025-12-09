@@ -49,7 +49,7 @@ export default function AllExpenses() {
         <View style={styles.totalCard}>
           <View style={styles.totalContent}>
             <Text style={styles.totalLabel}>Monthly Total</Text>
-            <Text style={styles.totalAmount}>${monthlyTotal.toFixed(2)}</Text>
+            <Text style={styles.totalAmount}>₦{monthlyTotal.toFixed(2)}</Text>
           </View>
           <View style={styles.totalBadge}>
             <Ionicons name="wallet" size={20} color="#3B82F6" />

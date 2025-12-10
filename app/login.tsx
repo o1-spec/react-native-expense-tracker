@@ -1,6 +1,7 @@
+import { BiometricAuth } from '@/services/biometricAuth';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,8 +11,29 @@ export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { login, signup, resetPassword, sendVerificationEmail } = useAuth();
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [biometricType, setBiometricType] = useState<string[]>([]);
+  const { login, signup, resetPassword } = useAuth();
   const router = useRouter();
+
+  // Check biometric availability on mount
+  useEffect(() => {
+    checkBiometricAvailability();
+  }, []);
+
+  const checkBiometricAvailability = async () => {
+    const available = await BiometricAuth.isAvailable();
+    setBiometricAvailable(available);
+    
+    if (available) {
+      const enabled = await BiometricAuth.isBiometricEnabled();
+      setBiometricEnabled(enabled);
+      
+      const types = await BiometricAuth.getSupportedTypes();
+      setBiometricType(types);
+    }
+  };
 
   const getErrorMessage = (error: any): string => {
     if (!error) return 'An unknown error occurred';
@@ -33,6 +55,33 @@ export default function Login() {
     };
 
     return errorMessages[errorCode] || error.message || 'An error occurred. Please try again.';
+  };
+
+  const handleBiometricLogin = async () => {
+    try {
+      // Authenticate with biometrics
+      const authenticated = await BiometricAuth.authenticate();
+      
+      if (authenticated) {
+        // Get stored credentials
+        const credentials = await BiometricAuth.getStoredCredentials();
+        
+        if (credentials) {
+          setLoading(true);
+          await login(credentials.email, credentials.password);
+          router.replace('/(tabs)');
+        } else {
+          Alert.alert('Error', 'No stored credentials found. Please login with email and password.');
+          await BiometricAuth.disableBiometric();
+          setBiometricEnabled(false);
+        }
+      }
+    } catch (error) {
+      const message = getErrorMessage(error);
+      Alert.alert('Login Failed', message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleForgotPassword = () => {
@@ -82,10 +131,33 @@ export default function Login() {
     try {
       if (isLogin) {
         await login(email, password);
-        router.replace('/(tabs)');
+        
+        // After successful login, ask if user wants to enable biometric
+        if (biometricAvailable && !biometricEnabled) {
+          Alert.alert(
+            'Enable Biometric Login?',
+            `Would you like to use ${biometricType.join(' or ')} for faster login next time?`,
+            [
+              {
+                text: 'No, thanks',
+                style: 'cancel',
+                onPress: () => router.replace('/(tabs)'),
+              },
+              {
+                text: 'Enable',
+                onPress: async () => {
+                  await BiometricAuth.enableBiometric(email, password);
+                  setBiometricEnabled(true);
+                  router.replace('/(tabs)');
+                },
+              },
+            ]
+          );
+        } else {
+          router.replace('/(tabs)');
+        }
       } else {
         await signup(email, password);
-        // Show success message for signup
         Alert.alert(
           'Account Created!',
           'A verification email has been sent to ' + email + '. Please verify your email to access all features.',
@@ -109,6 +181,33 @@ export default function Login() {
     <View style={styles.container}>
       <Text style={styles.title}>Expense Tracker</Text>
       <Text style={styles.subtitle}>{isLogin ? 'Login to your account' : 'Create new account'}</Text>
+      
+      {/* Biometric Login Button - Only show on login and if enabled */}
+      {isLogin && biometricAvailable && biometricEnabled && (
+        <TouchableOpacity
+          style={styles.biometricButton}
+          onPress={handleBiometricLogin}
+          disabled={loading}
+        >
+          <Ionicons
+            name={biometricType.includes('Face ID') ? 'scan' : 'finger-print'}
+            size={24}
+            color="#007AFF"
+          />
+          <Text style={styles.biometricText}>
+            Login with {biometricType.join(' or ')}
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Divider */}
+      {isLogin && biometricAvailable && biometricEnabled && (
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>or</Text>
+          <View style={styles.dividerLine} />
+        </View>
+      )}
       
       <TextInput
         style={styles.input}
@@ -180,6 +279,39 @@ const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: '#f5f5f5' },
   title: { fontSize: 36, fontWeight: 'bold', textAlign: 'center', marginBottom: 8, color: '#007AFF' },
   subtitle: { fontSize: 16, textAlign: 'center', marginBottom: 40, color: '#666' },
+  biometricButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EFF6FF',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#DBEAFE',
+    gap: 12,
+  },
+  biometricText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    color: '#9CA3AF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
   input: { 
     borderWidth: 1, 
     borderColor: '#ddd', 

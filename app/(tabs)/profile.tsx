@@ -1,6 +1,7 @@
+import { BiometricAuth } from "@/services/biometricAuth";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -26,6 +27,90 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  
+  // Biometric states
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [biometricType, setBiometricType] = useState<string[]>([]);
+
+  // Check biometric status on mount
+  useEffect(() => {
+    checkBiometricStatus();
+  }, []);
+
+  const checkBiometricStatus = async () => {
+    const available = await BiometricAuth.isAvailable();
+    setBiometricAvailable(available);
+    
+    if (available) {
+      const enabled = await BiometricAuth.isBiometricEnabled();
+      setBiometricEnabled(enabled);
+      
+      const types = await BiometricAuth.getSupportedTypes();
+      setBiometricType(types);
+    }
+  };
+
+  const handleToggleBiometric = async () => {
+    if (biometricEnabled) {
+      // Disable biometric
+      Alert.alert(
+        'Disable Biometric Login',
+        'Are you sure you want to disable biometric login?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Disable',
+            style: 'destructive',
+            onPress: async () => {
+              await BiometricAuth.disableBiometric();
+              setBiometricEnabled(false);
+              Alert.alert('Success', 'Biometric login disabled');
+            },
+          },
+        ]
+      );
+    } else {
+      // Enable biometric - need to re-authenticate
+      Alert.alert(
+        'Enable Biometric Login',
+        'Please enter your password to enable biometric login',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Continue',
+            onPress: () => {
+              Alert.prompt(
+                'Enter Password',
+                'Confirm your password to enable biometric login',
+                async (password) => {
+                  if (!password) {
+                    Alert.alert('Error', 'Password is required');
+                    return;
+                  }
+                  try {
+                    setLoading(true);
+                    // Verify password by attempting to change it to itself
+                    if (user?.email) {
+                      await changePassword(password, password);
+                      await BiometricAuth.enableBiometric(user.email, password);
+                      setBiometricEnabled(true);
+                      Alert.alert('Success', `${biometricType.join(' or ')} login enabled`);
+                    }
+                  } catch (error) {
+                    Alert.alert('Error', 'Invalid password. Please try again.');
+                  } finally {
+                    setLoading(false);
+                  }
+                },
+                'secure-text'
+              );
+            },
+          },
+        ]
+      );
+    }
+  };
 
   const handleUpdateProfile = async () => {
     if (!displayName.trim()) {
@@ -66,6 +151,12 @@ export default function Profile() {
     setLoading(true);
     try {
       await changePassword(currentPassword, newPassword);
+      
+      // If biometric is enabled, update stored password
+      if (biometricEnabled && user?.email) {
+        await BiometricAuth.enableBiometric(user.email, newPassword);
+      }
+      
       Alert.alert("Success", "Password changed successfully");
       setCurrentPassword("");
       setNewPassword("");
@@ -93,6 +184,7 @@ export default function Profile() {
             setLoading(true);
             try {
               await deleteAccount();
+              await BiometricAuth.disableBiometric(); // Clear biometric data
               router.replace("/login");
             } catch (error) {
               const message =
@@ -141,6 +233,8 @@ export default function Profile() {
               : "N/A"}
           </Text>
         </View>
+
+        {/* Email Verification Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Email Verification</Text>
@@ -181,6 +275,7 @@ export default function Profile() {
             )}
           </View>
         </View>
+
         {/* Display Name Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -222,14 +317,47 @@ export default function Profile() {
           )}
         </View>
 
-        {/* Change Password Section */}
+        {/* Security Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Security</Text>
           </View>
 
+          {/* Biometric Authentication */}
+          {biometricAvailable && (
+            <>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleToggleBiometric}
+                disabled={loading}
+              >
+                <Ionicons 
+                  name={biometricType.includes('Face ID') ? 'scan' : 'finger-print'} 
+                  size={20} 
+                  color="#007AFF" 
+                />
+                <Text style={styles.actionButtonText}>
+                  {biometricType.join(' or ')} Login
+                </Text>
+                <View style={styles.toggle}>
+                  <View style={[styles.toggleTrack, biometricEnabled && styles.toggleTrackActive]}>
+                    <View style={[styles.toggleThumb, biometricEnabled && styles.toggleThumbActive]} />
+                  </View>
+                </View>
+              </TouchableOpacity>
+              
+              <Text style={styles.biometricInfo}>
+                {biometricEnabled 
+                  ? `${biometricType.join(' or ')} is enabled for quick and secure login`
+                  : `Enable ${biometricType.join(' or ')} for faster login`
+                }
+              </Text>
+            </>
+          )}
+
+          {/* Change Password */}
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[styles.actionButton, biometricAvailable && { marginTop: 12 }]}
             onPress={() => setChangingPassword(!changingPassword)}
           >
             <Ionicons name="lock-closed-outline" size={20} color="#007AFF" />
@@ -381,6 +509,42 @@ const styles = StyleSheet.create({
   },
   dangerText: { color: "#EF4444" },
   passwordSection: { marginTop: 16 },
+  toggle: {
+    marginLeft: 'auto',
+  },
+  toggleTrack: {
+    width: 50,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#E5E7EB',
+    padding: 2,
+    justifyContent: 'center',
+  },
+  toggleTrackActive: {
+    backgroundColor: '#007AFF',
+  },
+  toggleThumb: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  toggleThumbActive: {
+    transform: [{ translateX: 20 }],
+  },
+  biometricInfo: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: -8,
+    marginBottom: 12,
+    lineHeight: 18,
+    paddingHorizontal: 16,
+  },
   footer: { alignItems: "center", marginTop: 32, marginBottom: 20 },
   footerText: { fontSize: 12, color: "#999" },
 });

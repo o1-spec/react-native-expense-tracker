@@ -1,5 +1,7 @@
+import ExpenseDetailModal from "@/components/ExpenseDetailModal";
 import { useAuth } from "@/context/AuthContext";
 import { useExpenses } from "@/context/ExpenseContext";
+import { Category, Expense } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -17,7 +19,6 @@ import {
 import CategoryFilter from "../../components/CategoryFilter";
 import ExpenseItem from "../../components/ExpenseItem";
 import MonthlyChart from "../../components/MonthlyChart";
-import { Category } from "../../types";
 
 export default function AllExpenses() {
   const { allExpenses, loading, monthlyTotal, expenses, deleteExpense } =
@@ -26,6 +27,8 @@ export default function AllExpenses() {
     "All"
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
   const { logout } = useAuth();
 
@@ -36,8 +39,44 @@ export default function AllExpenses() {
     .filter(
       (e) =>
         e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (e.description && e.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (e.notes && e.notes.toLowerCase().includes(searchQuery.toLowerCase()))
     );
+
+  const handleExpensePress = (expense: Expense) => {
+    setSelectedExpense(expense);
+    setModalVisible(true);
+  };
+
+  const handleEdit = () => {
+    setModalVisible(false);
+    Alert.alert("Edit", "Edit functionality coming soon!");
+  };
+
+  const handleDeleteFromModal = () => {
+    if (selectedExpense) {
+      Alert.alert(
+        "Delete Expense",
+        `Are you sure you want to delete "${selectedExpense.title}"?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await deleteExpense(selectedExpense.id);
+                setModalVisible(false);
+                Alert.alert("Success", "Expense deleted successfully");
+              } catch (error) {
+                Alert.alert("Error", "Failed to delete expense");
+              }
+            },
+          },
+        ]
+      );
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -45,6 +84,7 @@ export default function AllExpenses() {
       { text: "Logout", style: "destructive", onPress: logout },
     ]);
   };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -79,6 +119,7 @@ export default function AllExpenses() {
             </TouchableOpacity>
           </View>
         </View>
+
         {/* Monthly Total Card */}
         <View style={styles.totalCard}>
           <View style={styles.totalContent}>
@@ -108,7 +149,7 @@ export default function AllExpenses() {
           />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by title or notes..."
+            placeholder="Search by title, description or notes..."
             placeholderTextColor="#D1D5DB"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -139,8 +180,11 @@ export default function AllExpenses() {
             data={filteredExpenses}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <ExpenseItem expense={item} onDelete={deleteExpense} />
-            )} // Add onDelete prop
+              <ExpenseItem 
+                expense={item} 
+                onPress={() => handleExpensePress(item)}
+              />
+            )}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Ionicons name="search-outline" size={56} color="#D1D5DB" />
@@ -165,6 +209,15 @@ export default function AllExpenses() {
           <Text style={styles.addButtonText}>Add Expense</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Detail Modal */}
+      <ExpenseDetailModal
+        expense={selectedExpense}
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onEdit={handleEdit}
+        onDelete={handleDeleteFromModal}
+      />
     </SafeAreaView>
   );
 }
@@ -250,7 +303,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // Chart Card
   chartCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -275,7 +327,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  // Search Bar
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -335,7 +386,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Add Button
   addButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -358,7 +408,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // Utilities
   center: {
     flex: 1,
     justifyContent: "center",

@@ -1,55 +1,31 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Expense } from "../types";
 
 interface ExpenseItemProps {
   expense: Expense;
+  onPress?: () => void;
   onDelete?: (id: string) => void;
 }
 
-export default function ExpenseItem({ expense, onDelete }: ExpenseItemProps) {
-  const handleDelete = () => {
-    if (onDelete) {
-      Alert.alert(
-        "Delete Expense",
-        `Are you sure you want to delete "${expense.title}"?`,
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: () => onDelete(expense.id),
-          },
-        ]
-      );
-    }
-  };
-
+export default function ExpenseItem({ expense, onPress, onDelete }: ExpenseItemProps) {
   return (
-    <View style={styles.container}>
+    <TouchableOpacity 
+      style={styles.container}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
       <View style={styles.content}>
         <Text style={styles.title}>{expense.title}</Text>
-        <Text style={styles.amount}>
-          ₦{(expense.amount || 0).toFixed(2)}
-        </Text>
-        {/* Add fallback */}
+        <Text style={styles.amount}>₦{(expense.amount || 0).toFixed(2)}</Text>
         <Text style={styles.category}>{expense.category}</Text>
         <Text style={styles.date}>
           {new Date(expense.date).toLocaleDateString()}
         </Text>
-        {expense.notes && <Text style={styles.notes}>{expense.notes}</Text>}
       </View>
-      {onDelete && (
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={handleDelete}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="trash-outline" size={20} color="#EF4444" />
-        </TouchableOpacity>
-      )}
-    </View>
+      <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+    </TouchableOpacity>
   );
 }
 
@@ -93,14 +69,5 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 12,
     color: "#9CA3AF",
-  },
-  notes: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginTop: 4,
-  },
-  deleteButton: {
-    padding: 8,
-    marginLeft: 12,
   },
 });

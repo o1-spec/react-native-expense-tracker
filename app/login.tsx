@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -8,12 +9,72 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
-  const { login, signup } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const { login, signup, resetPassword, sendVerificationEmail } = useAuth();
   const router = useRouter();
+
+  const getErrorMessage = (error: any): string => {
+    if (!error) return 'An unknown error occurred';
+    
+    const errorCode = error.code || '';
+    
+    const errorMessages: Record<string, string> = {
+      'auth/invalid-email': 'Invalid email address format.',
+      'auth/user-disabled': 'This account has been disabled.',
+      'auth/user-not-found': 'No account found with this email.',
+      'auth/wrong-password': 'Incorrect password. Please try again.',
+      'auth/email-already-in-use': 'An account already exists with this email.',
+      'auth/weak-password': 'Password should be at least 6 characters.',
+      'auth/too-many-requests': 'Too many attempts. Please try again later.',
+      'auth/network-request-failed': 'Network error. Check your internet connection.',
+      'auth/invalid-credential': 'Invalid email or password.',
+      'auth/operation-not-allowed': 'This sign-in method is not enabled.',
+      'auth/requires-recent-login': 'Please login again to complete this action.',
+    };
+
+    return errorMessages[errorCode] || error.message || 'An error occurred. Please try again.';
+  };
+
+  const handleForgotPassword = () => {
+    Alert.prompt(
+      'Reset Password',
+      'Enter your email address to receive a password reset link',
+      async (inputEmail) => {
+        if (!inputEmail || !inputEmail.includes('@')) {
+          Alert.alert('Invalid Email', 'Please enter a valid email address');
+          return;
+        }
+
+        try {
+          await resetPassword(inputEmail);
+          Alert.alert(
+            'Success',
+            'Password reset email sent! Check your inbox.',
+            [{ text: 'OK' }]
+          );
+        } catch (error) {
+          const message = getErrorMessage(error);
+          Alert.alert('Error', message);
+        }
+      },
+      'plain-text',
+      email
+    );
+  };
 
   const handleAuth = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert('Missing Information', 'Please fill in all fields');
+      return;
+    }
+
+    if (!email.includes('@')) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Weak Password', 'Password must be at least 6 characters long');
       return;
     }
 
@@ -21,13 +82,24 @@ export default function Login() {
     try {
       if (isLogin) {
         await login(email, password);
+        router.replace('/(tabs)');
       } else {
         await signup(email, password);
+        // Show success message for signup
+        Alert.alert(
+          'Account Created!',
+          'A verification email has been sent to ' + email + '. Please verify your email to access all features.',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.replace('/(tabs)'),
+            },
+          ]
+        );
       }
-      router.replace('/(tabs)');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'An error occurred';
-      Alert.alert('Error', message);
+      const message = getErrorMessage(error);
+      Alert.alert(isLogin ? 'Login Failed' : 'Signup Failed', message);
     } finally {
       setLoading(false);
     }
@@ -46,20 +118,47 @@ export default function Login() {
         keyboardType="email-address"
         autoCapitalize="none"
         autoComplete="email"
+        editable={!loading}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        autoComplete="password"
-      />
+      
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.passwordInput}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
+          autoComplete="password"
+          editable={!loading}
+        />
+        <TouchableOpacity 
+          style={styles.eyeIcon} 
+          onPress={() => setShowPassword(!showPassword)}
+          disabled={loading}
+        >
+          <Ionicons 
+            name={showPassword ? 'eye-off-outline' : 'eye-outline'} 
+            size={22} 
+            color="#666" 
+          />
+        </TouchableOpacity>
+      </View>
+
+      {isLogin && (
+        <TouchableOpacity 
+          onPress={handleForgotPassword}
+          disabled={loading}
+          style={styles.forgotPasswordContainer}
+        >
+          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+        </TouchableOpacity>
+      )}
       
       <TouchableOpacity 
         style={[styles.button, loading && styles.buttonDisabled]} 
         onPress={handleAuth}
         disabled={loading}
+        activeOpacity={0.8}
       >
         {loading ? (
           <ActivityIndicator color="white" />
@@ -89,6 +188,34 @@ const styles = StyleSheet.create({
     borderRadius: 12, 
     backgroundColor: '#fff', 
     fontSize: 16 
+  },
+  passwordContainer: {
+    position: 'relative',
+    marginBottom: 8,
+  },
+  passwordInput: {
+    borderWidth: 1, 
+    borderColor: '#ddd', 
+    padding: 16, 
+    paddingRight: 50, 
+    borderRadius: 12, 
+    backgroundColor: '#fff', 
+    fontSize: 16 
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 16,
+    top: 16,
+    padding: 4,
+  },
+  forgotPasswordContainer: {
+    alignSelf: 'flex-end',
+    marginBottom: 24,
+  },
+  forgotPasswordText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '500',
   },
   button: { 
     backgroundColor: '#007AFF', 

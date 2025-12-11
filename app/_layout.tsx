@@ -5,6 +5,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 function RootLayoutNav() {
   const { user, loading } = useAuth();
@@ -15,19 +16,32 @@ function RootLayoutNav() {
     if (loading) return;
 
     const inAuthGroup = segments[0] === 'login';
-
-    if (!user && !inAuthGroup) {
-      router.replace('/login');
-    } else if (user && inAuthGroup) {
+    const inTabsGroup = segments[0] === '(tabs)';
+    
+    if (user && inAuthGroup) {
       router.replace('/(tabs)');
+      return;
     }
+    if (!user && inTabsGroup) {
+      router.replace('/login');
+      return;
+    }
+
   }, [user, loading, segments]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="login" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen 
+        name="modal" 
+        options={{ 
+          presentation: 'modal',
+          headerShown: true,
+          title: 'Add Expense',
+        }} 
+      />
     </Stack>
   );
 }
@@ -36,13 +50,15 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <AuthProvider>
-      <ExpenseProvider>  
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <RootLayoutNav />
-          <StatusBar style="auto" />
-        </ThemeProvider>
-      </ExpenseProvider>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <ExpenseProvider>  
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <RootLayoutNav />
+            <StatusBar style="dark" />
+          </ThemeProvider>
+        </ExpenseProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

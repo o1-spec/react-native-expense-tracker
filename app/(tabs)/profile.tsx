@@ -5,7 +5,6 @@ import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
-    SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
@@ -14,6 +13,7 @@ import {
     View,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Profile() {
   const { user, logout, updateUserProfile, changePassword, deleteAccount, sendVerificationEmail } =

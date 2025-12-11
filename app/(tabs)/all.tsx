@@ -9,7 +9,6 @@ import React, { useState } from "react";
 import {
   Alert,
   FlatList,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,6 +19,7 @@ import {
 import CategoryFilter from "../../components/CategoryFilter";
 import ExpenseItem from "../../components/ExpenseItem";
 import MonthlyChart from "../../components/MonthlyChart";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AllExpenses() {
   const { allExpenses, loading, monthlyTotal, expenses, deleteExpense, updateExpense } =

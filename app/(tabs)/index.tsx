@@ -12,13 +12,13 @@ import React, { useState } from "react";
 import {
   Alert,
   FlatList,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context"; // Change this import
 
 export default function RecentExpenses() {
   const { recentExpenses, loading, monthlyTotal, expenses, deleteExpense, updateExpense } =
@@ -86,7 +86,7 @@ export default function RecentExpenses() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.center}>
           <Ionicons name="hourglass-outline" size={48} color="#3B82F6" />
           <Text style={styles.loadingText}>Loading...</Text>
@@ -96,7 +96,7 @@ export default function RecentExpenses() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <EmailVerificationBanner />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}

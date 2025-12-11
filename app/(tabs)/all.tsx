@@ -1,3 +1,4 @@
+import EditExpenseModal from "@/components/EditExpenseModal";
 import ExpenseDetailModal from "@/components/ExpenseDetailModal";
 import { useAuth } from "@/context/AuthContext";
 import { useExpenses } from "@/context/ExpenseContext";
@@ -21,7 +22,7 @@ import ExpenseItem from "../../components/ExpenseItem";
 import MonthlyChart from "../../components/MonthlyChart";
 
 export default function AllExpenses() {
-  const { allExpenses, loading, monthlyTotal, expenses, deleteExpense } =
+  const { allExpenses, loading, monthlyTotal, expenses, deleteExpense, updateExpense } =
     useExpenses();
   const [selectedCategory, setSelectedCategory] = useState<Category | "All">(
     "All"
@@ -29,6 +30,8 @@ export default function AllExpenses() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [expenseToEdit, setExpenseToEdit] = useState<Expense | null>(null);
   const router = useRouter();
   const { logout } = useAuth();
 
@@ -48,9 +51,21 @@ export default function AllExpenses() {
     setModalVisible(true);
   };
 
-  const handleEdit = () => {
+  const handleEdit = (expense: Expense) => {
     setModalVisible(false);
-    Alert.alert("Edit", "Edit functionality coming soon!");
+    setExpenseToEdit(expense);
+    setEditModalVisible(true);
+  };
+
+  const handleSaveEdit = async (updatedExpense: Expense) => {
+    try {
+      await updateExpense(updatedExpense);
+      setEditModalVisible(false);
+      setExpenseToEdit(null);
+      Alert.alert("Success", "Expense updated successfully");
+    } catch (error) {
+      Alert.alert("Error", "Failed to update expense");
+    }
   };
 
   const handleDeleteFromModal = () => {
@@ -217,6 +232,17 @@ export default function AllExpenses() {
         onClose={() => setModalVisible(false)}
         onEdit={handleEdit}
         onDelete={handleDeleteFromModal}
+      />
+
+      {/* Edit Modal */}
+      <EditExpenseModal
+        expense={expenseToEdit}
+        visible={editModalVisible}
+        onClose={() => {
+          setEditModalVisible(false);
+          setExpenseToEdit(null);
+        }}
+        onSave={handleSaveEdit}
       />
     </SafeAreaView>
   );

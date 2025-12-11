@@ -1,4 +1,5 @@
 import CategoryFilter from "@/components/CategoryFilter";
+import EditExpenseModal from "@/components/EditExpenseModal";
 import EmailVerificationBanner from "@/components/EmailVerificationBanner";
 import ExpenseDetailModal from "@/components/ExpenseDetailModal";
 import ExpenseItem from "@/components/ExpenseItem";
@@ -20,13 +21,15 @@ import {
 } from "react-native";
 
 export default function RecentExpenses() {
-  const { recentExpenses, loading, monthlyTotal, expenses, deleteExpense } =
+  const { recentExpenses, loading, monthlyTotal, expenses, deleteExpense, updateExpense } =
     useExpenses();
   const [selectedCategory, setSelectedCategory] = useState<Category | "All">(
     "All"
   );
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [expenseToEdit, setExpenseToEdit] = useState<Expense | null>(null);
   const router = useRouter();
 
   const filteredExpenses =
@@ -39,10 +42,21 @@ export default function RecentExpenses() {
     setModalVisible(true);
   };
 
-  const handleEdit = () => {
+  const handleEdit = (expense: Expense) => {
     setModalVisible(false);
-    // Navigate to edit screen (you can implement this later)
-    Alert.alert("Edit", "Edit functionality coming soon!");
+    setExpenseToEdit(expense);
+    setEditModalVisible(true);
+  };
+
+  const handleSaveEdit = async (updatedExpense: Expense) => {
+    try {
+      await updateExpense(updatedExpense);
+      setEditModalVisible(false);
+      setExpenseToEdit(null);
+      Alert.alert("Success", "Expense updated successfully");
+    } catch (error) {
+      Alert.alert("Error", "Failed to update expense");
+    }
   };
 
   const handleDeleteFromModal = () => {
@@ -165,6 +179,17 @@ export default function RecentExpenses() {
         onEdit={handleEdit}
         onDelete={handleDeleteFromModal}
       />
+
+      {/* Edit Modal */}
+      <EditExpenseModal
+        expense={expenseToEdit}
+        visible={editModalVisible}
+        onClose={() => {
+          setEditModalVisible(false);
+          setExpenseToEdit(null);
+        }}
+        onSave={handleSaveEdit}
+      />
     </SafeAreaView>
   );
 }
@@ -237,6 +262,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
+  // Chart Card
   chartCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -261,10 +287,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
+  // Filter Section
   filterSection: {
     marginBottom: 24,
   },
 
+  // Expenses Section
   expensesSection: {
     marginBottom: 24,
   },
@@ -313,6 +341,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
+  // Utilities
   center: {
     flex: 1,
     justifyContent: "center",

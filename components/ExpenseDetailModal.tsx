@@ -1,12 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Expense } from '../types';
 
@@ -14,7 +14,7 @@ interface ExpenseDetailModalProps {
   expense: Expense | null;
   visible: boolean;
   onClose: () => void;
-  onEdit?: () => void;
+  onEdit?: (expense: Expense) => void; 
   onDelete?: () => void;
 }
 
@@ -144,7 +144,10 @@ export default function ExpenseDetailModal({
           {/* Action Buttons */}
           <View style={styles.actions}>
             {onEdit && (
-              <TouchableOpacity style={styles.editButton} onPress={onEdit}>
+              <TouchableOpacity 
+                style={styles.editButton} 
+                onPress={() => onEdit(expense)} // Pass expense to edit handler
+              >
                 <Ionicons name="create-outline" size={20} color="white" />
                 <Text style={styles.buttonText}>Edit</Text>
               </TouchableOpacity>
